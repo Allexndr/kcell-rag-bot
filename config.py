@@ -3,11 +3,13 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-TELEGRAM_BOT_TOKEN = "8337768970:AAH4A5kd08XZyjDPTHviAopFlXTuBQwHrHs"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-DOCS_DIR = "/Users/aleksandr/PycharmProjects/kcell rag kae/база данных документов"
-DB_DIR = "/Users/aleksandr/PycharmProjects/kcell rag kae/chroma_db"
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "8337768970:AAH4A5kd08XZyjDPTHviAopFlXTuBQwHrHs")
+
+DOCS_DIR = os.path.join(BASE_DIR, "data", "documents")
+DB_DIR = os.path.join(BASE_DIR, "data", "chroma_db")
 
 COLLECTION_NAME = "kcell_docs"
 EMBEDDING_MODEL = "all-MiniLM-L6-v2"

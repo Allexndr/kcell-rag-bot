@@ -2,7 +2,7 @@ import logging
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, CallbackQueryHandler, filters
 import config
-from rag_engine_local import RAGEngineLocal as RAGEngine  # Using local Ollama instead of Gemini
+from src.rag_engine import RAGEngineLocal as RAGEngine  # Using local Ollama instead of Gemini
 import time
 import re
 import json
