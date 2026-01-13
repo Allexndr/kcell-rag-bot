@@ -1,0 +1,81 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ChromaDB
+chroma_db/
+*.bin
+*.pickle
+
+# Analytics and logs (keep important ones)
+analytics/eval_batch_*.csv
+analytics/*.log
+!analytics/eval_combined_all_batches.csv
+!analytics/usage.log
+!analytics/feedback.json
+!analytics/personalization.json
+!analytics/auto_update.json
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+
+# Documentation (keep important ones)
+!Kcell_RAG_Bot_Project_Passport_*.pdf
+!Kcell_RAG_Bot_Full_Documentation.txt
+!README.md
+!OLLAMA_SETUP.md
+
+# Test files
+tests/test_*.py
+!tests/README.md
+
+# Tools
+tools/
+!tools/README.md
+uploads/

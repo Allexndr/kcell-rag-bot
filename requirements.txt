@@ -1,0 +1,16 @@
+python-telegram-bot
+chromadb
+google-generativeai
+pypdf
+python-docx
+openpyxl
+python-pptx
+python-dotenv
+tqdm
+sentence-transformers
+backoff
+pytesseract
+pdf2image
+pillow
+langdetect
+rank-bm25

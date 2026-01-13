@@ -1,0 +1,143 @@
+:root {
+    --primary-purple: #613898;
+    --primary-light: #f3f0f9;
+    --text-dark: #333;
+    --text-light: #666;
+    --bg-color: #f8f9fa;
+    --diff-add-bg: #e6ffec;
+    --diff-add-text: #1b5e20;
+    --diff-del-bg: #ffebee;
+    --diff-del-text: #b71c1c;
+    --diff-mod-bg: #fff8e1;
+    --diff-mod-text: #f57f17;
+    --border-color: #e0e0e0;
+}
+
+body {
+    font-family: 'Inter', 'Roboto', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: var(--bg-color);
+    color: var(--text-dark);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header */
+header {
+    background: white;
+    padding: 15px 30px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 100;
+}
+
+.logo {
+    font-weight: 700;
+    font-size: 24px;
+    color: var(--primary-purple);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.stats-bar {
+    display: flex;
+    gap: 20px;
+}
+
+.stat-item {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.stat-add { background: var(--diff-add-bg); color: var(--diff-add-text); }
+.stat-del { background: var(--diff-del-bg); color: var(--diff-del-text); }
+.stat-mod { background: var(--diff-mod-bg); color: var(--diff-mod-text); }
+
+/* Main Comparison Area */
+.compare-container {
+    flex: 1;
+    display: flex;
+    position: relative;
+    overflow: hidden; /* For scroll syncing */
+}
+
+.doc-panel {
+    flex: 1;
+    padding: 40px;
+    overflow-y: auto;
+    border-right: 1px solid var(--border-color);
+    background: white;
+}
+
+.doc-panel:last-child {
+    border-right: none;
+}
+
+.panel-header {
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--primary-purple);
+}
+
+.panel-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--primary-purple);
+}
+
+.panel-meta {
+    font-size: 12px;
+    color: var(--text-light);
+}
+
+/* Content & Diff Styling */
+.doc-content {
+    line-height: 1.6;
+    font-size: 14px;
+}
+
+.line {
+    padding: 2px 0;
+    min-height: 24px; /* Ensure empty lines have height */
+}
+
+.diff-add {
+    background-color: var(--diff-add-bg);
+    border-left: 3px solid var(--diff-add-text);
+}
+
+.diff-del {
+    background-color: var(--diff-del-bg);
+    border-left: 3px solid var(--diff-del-text);
+    text-decoration: line-through;
+    opacity: 0.7;
+}
+
+.diff-mod {
+    background-color: var(--diff-mod-bg);
+    border-left: 3px solid var(--diff-mod-text);
+}
+
+/* SVG Overlay for Connections */
+#connections {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none; /* Let clicks pass through */
+    z-index: 50;
+}
+
+path {
+    fill: none;
+    stroke-width: 1.5;
+    opacity: 0.6;
+}

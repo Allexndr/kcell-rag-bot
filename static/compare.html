@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kcell Document Compare</title>
+    <link rel="stylesheet" href="/static/css/kcell_style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<header>
+    <div class="logo">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="#613898" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M14 2V8H20" stroke="#613898" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M16 13H8" stroke="#613898" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M16 17H8" stroke="#613898" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M10 9H9H8" stroke="#613898" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Kcell Docs
+    </div>
+    
+    <div class="stats-bar" id="statsBar">
+        <span class="stat-item stat-add">Added: <span id="val-add">0</span></span>
+        <span class="stat-item stat-del">Deleted: <span id="val-del">0</span></span>
+        <span class="stat-item stat-mod">Modified: <span id="val-mod">0</span></span>
+    </div>
+</header>
+
+<div class="compare-container" id="compareContainer">
+    <svg id="connections"></svg>
+    
+    <div class="doc-panel" id="leftPanel">
+        <div class="panel-header">
+            <div class="panel-title">Original (Версия 1)</div>
+            <div class="panel-meta" id="leftMeta">Loading...</div>
+        </div>
+        <div class="doc-content" id="leftContent"></div>
+    </div>
+
+    <div class="doc-panel" id="rightPanel">
+        <div class="panel-header">
+            <div class="panel-title">Modified (Версия 2)</div>
+            <div class="panel-meta" id="rightMeta">Loading...</div>
+        </div>
+        <div class="doc-content" id="rightContent"></div>
+    </div>
+</div>
+
+<script>
+    const sessionId = window.location.pathname.split('/').pop();
+    const leftPanel = document.getElementById('leftPanel');
+    const rightPanel = document.getElementById('rightPanel');
+    const svgLayer = document.getElementById('connections');
+    
+    let diffData = null;
+    let lineMapping = []; // index = left line, value = right line
+
+    async function loadData() {
+        try {
+            const response = await fetch('/api/results/' + sessionId);
+            if (!response.ok) throw new Error("Result not found");
+            diffData = await response.json();
+            render();
+        } catch (e) {
+            alert("Error loading comparison: " + e.message);
+        }
+    }
+
+    function render() {
+        document.getElementById('val-add').innerText = diffData.stats.added;
+        document.getElementById('val-del').innerText = diffData.stats.deleted;
+        document.getElementById('val-mod').innerText = diffData.stats.modified;
+        document.getElementById('leftMeta').innerText = diffData.filenames.original;
+        document.getElementById('rightMeta').innerText = diffData.filenames.modified;
+
+        const leftContent = document.getElementById('leftContent');
+        const rightContent = document.getElementById('rightContent');
+        
+        // We will reconstruct the full text line by line to map them
+        // diffData.blocks contains {type, old_lines, new_lines}
+        
+        let leftLineIdx = 0;
+        let rightLineIdx = 0;
+        
+        // Clear mapping
+        lineMapping = [];
+
+        diffData.blocks.forEach(block => {
+            // Render Left Side
+            if (['equal', 'replace', 'delete'].includes(block.type)) {
+                block.old_lines.forEach(line => {
+                    const div = document.createElement('div');
+                    div.className = `line ${block.type === 'equal' ? '' : (block.type === 'replace' ? 'diff-mod' : 'diff-del')}`;
+                    div.innerText = line || " "; // Preserve height for empty lines
+                    div.dataset.idx = leftLineIdx;
+                    leftContent.appendChild(div);
+                    leftLineIdx++;
+                });
+            }
+            
+            // Render Right Side
+            if (['equal', 'replace', 'insert'].includes(block.type)) {
+                block.new_lines.forEach(line => {
+                    const div = document.createElement('div');
+                    div.className = `line ${block.type === 'equal' ? '' : (block.type === 'replace' ? 'diff-mod' : 'diff-add')}`;
+                    div.innerText = line || " ";
+                    div.dataset.idx = rightLineIdx;
+                    rightContent.appendChild(div);
+                    rightLineIdx++;
+                });
+            }
+            
+            // Build visual connections later
+        });
+
+        drawConnections();
+        window.addEventListener('resize', drawConnections);
+    }
+    
+    function drawConnections() {
+        // Clear SVG
+        while (svgLayer.lastChild) {
+            svgLayer.removeChild(svgLayer.lastChild);
+        }
+
+        // Need relative positions.
+        // We can cheat: Draw curves only for visible area? Or all?
+        // Let's draw for 'replace' and 'moved' blocks.
+        
+        // Since we didn't preserve block mapping perfectly in DOM generation above (we flattened it),
+        // we should iterate blocks again and find the corresponding DOM nodes using indices.
+        
+        let l_idx = 0;
+        let r_idx = 0;
+        
+        diffData.blocks.forEach(block => {
+            const l_count = block.old_lines.length;
+            const r_count = block.new_lines.length;
+            
+            if (block.type === 'replace' || block.type === 'equal') {
+                // Connect the start of this block
+                if (l_count > 0 && r_count > 0) {
+                     const l_node = document.getElementById('leftContent').children[l_idx];
+                     const r_node = document.getElementById('rightContent').children[r_idx];
+                     
+                     if (block.type === 'replace') {
+                         drawCurve(l_node, r_node, '#f57f17');
+                     } else if (Math.abs(l_idx - r_idx) > 5) {
+                         // Only draw connection for equal blocks if they are significantly offset (moved)
+                         // drawCurve(l_node, r_node, '#cccccc');
+                     }
+                }
+            }
+            
+            if (['equal', 'replace', 'delete'].includes(block.type)) l_idx += l_count;
+            if (['equal', 'replace', 'insert'].includes(block.type)) r_idx += r_count;
+        });
+    }
+
+    function drawCurve(startElem, endElem, color) {
+        if (!startElem || !endElem) return;
+        
+        const startRect = startElem.getBoundingClientRect();
+        const endRect = endElem.getBoundingClientRect();
+        const containerRect = document.getElementById('compareContainer').getBoundingClientRect();
+        
+        const x1 = startRect.right - containerRect.left;
+        const y1 = startRect.top - containerRect.top + (startRect.height / 2);
+        
+        const x2 = endRect.left - containerRect.left;
+        const y2 = endRect.top - containerRect.top + (endRect.height / 2);
+        
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        // Bezier curve
+        const c1 = x1 + (x2 - x1) / 2;
+        const d = `M ${x1} ${y1} C ${c1} ${y1}, ${c1} ${y2}, ${x2} ${y2}`;
+        
+        path.setAttribute("d", d);
+        path.setAttribute("stroke", color);
+        svgLayer.appendChild(path);
+    }
+    
+    // Simple Sync Scroll (Naive implementation)
+    // For V1, we just let them scroll independently but connections move?
+    // No, connections are absolute based on scroll position. If we scroll one, lines break.
+    // We must redraw lines on scroll OR position them relative to content? 
+    // SVG is absolute over the container. If container scrolls, SVG stays?
+    // Actually, document panels scroll internally. So lines (y-coord) change relative to container.
+    // We MUST redraw lines on scroll.
+    
+    leftPanel.addEventListener('scroll', () => { requestAnimationFrame(drawConnections); });
+    rightPanel.addEventListener('scroll', () => { requestAnimationFrame(drawConnections); });
+
+    loadData();
+</script>
+
+</body>
+</html>
