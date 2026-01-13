@@ -14,3 +14,6 @@ pdf2image
 pillow
 langdetect
 rank-bm25
+fastapi
+uvicorn
+python-multipart
